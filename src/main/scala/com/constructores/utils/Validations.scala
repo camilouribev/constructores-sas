@@ -2,13 +2,11 @@ package com.constructores.utils
 
 import com.constructores.Connection
 import com.constructores.model._
-import com.constructores.service.PrivateExecutionContext
-import com.constructores.service.ConstructionServices
-
+import com.constructores.service.MaterialServices.{updateBuildingMaterials, updateFootballFieldMaterials, updateGymMaterials, updateHouseMaterials, updateLakeMaterials}
+import com.constructores.service.{ConstructionServices, MaterialServices, PrivateExecutionContext}
 import com.constructores.service.PrivateExecutionContext._
 import slick.jdbc.PostgresProfile.api._
 
-import java.time.LocalDate
 import scala.Console.println
 import scala.io.StdIn
 import scala.util.{Failure, Success}
@@ -22,11 +20,12 @@ object Validations {
     println(s"Please introduce the desired longitude coordinate:  \n")
     val longitude: Long = StdIn.readLine().toLong
 
-    validateCoordinates(newConstructionType, latitude, longitude)
+    validateCoordinates(latitude, longitude)
     materialsValidationHandler(newConstructionType, latitude, longitude)
+
   }
 
-  def validateCoordinates(newConstructionType: String, newLatitude: Long, newLongitude: Long): Unit = {
+  def validateCoordinates(newLatitude: Long, newLongitude: Long): Unit = {
 
     val resultFuture = Connection.db.run(SlickTables.constructionTable
       .filter(construction => construction.longitude === newLongitude && construction.latitude === newLatitude).result)
@@ -51,14 +50,19 @@ object Validations {
   def materialsValidationHandler(newConstructionType: String, latitude: Long, longitude: Long): Unit = {
     newConstructionType match {
       case ConstructionType.HOUSE => validateHouseMaterials()
+        updateHouseMaterials()
 
       case ConstructionType.LAKE => validateLakeMaterials()
+        updateLakeMaterials()
 
       case ConstructionType.FOOTBALL_FIELD => validateFootballFieldMaterials()
+        updateFootballFieldMaterials()
 
       case ConstructionType.BUILDING => validateBuildingMaterials()
+        updateBuildingMaterials()
 
       case ConstructionType.GYM => validateGymMaterials()
+        updateGymMaterials()
 
       case _ => println("Invalid construction type")
         PrivateExecutionContext.executor.shutdown()

@@ -1,13 +1,12 @@
 package com.constructores.service
 
 import com.constructores.Connection
-import com.constructores.model.{Construction, ConstructionType, SlickTables, ConstructionStatus, ConstructionDuration}
+import com.constructores.model.{Construction, ConstructionDuration, ConstructionStatus, ConstructionType, Material, SlickTables}
 import com.constructores.service.PrivateExecutionContext._
-import com.constructores.utils.Validations.{coordinateValidationHandler}
+import com.constructores.utils.Validations.coordinateValidationHandler
 import slick.jdbc.PostgresProfile.api._
+
 import java.time.LocalDate
-
-
 import scala.Console.println
 import scala.concurrent.Future
 import scala.io.StdIn
@@ -40,11 +39,23 @@ object ConstructionServices {
   def getLastDate(): Unit = {
     val resultFuture = Connection.db.run(SlickTables.constructionTable.sorted(_.completionDate).result)
     resultFuture.onComplete {
-      case Success(constructions) => println(s"Fetched: ${constructions.last.completionDate}")
+      case Success(constructions) => println(s"The project will be finished on ${constructions.last.completionDate}")
       case Failure(exception) => println(s"Fetching failed: $exception")
     }
     Thread.sleep(10000)
   }
+
+  def getPropertiesByStatus(status: String): Unit = {
+    val resultFuture = Connection.db.run(SlickTables.constructionTable.
+      filter(_.status.like(s"%$status%")).result)
+      resultFuture.onComplete {
+      case Success(constructions) => println(s"$status constructions : ${constructions.mkString("\n")}")
+      case Failure(exception) => println(s"Fetching failed: $exception")
+    }
+    Thread.sleep(10000)
+  }
+
+
 
   def createRetrievingLastDate(newConstructionType: String, longitude: Long, latitude: Long): Unit = {
     val resultFuture = Connection.db.run(SlickTables.constructionTable.sorted(_.completionDate).result)
